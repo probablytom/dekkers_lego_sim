@@ -1,37 +1,63 @@
-from .Player import CompanyPlayer, ExternalPlayer
+# ===== Internal production elements
 
-class FinancialAdminPlayer(CompanyPlayer):
-    pass
+class ProductionPlanning(object):
+    def __init__(self):
+        self.goods_receipts = None
 
-class GoodsReciever(CompanyPlayer):
-    pass
+    def 
 
-class Manager(CompanyPlayer):
-    pass
+class GoodsReceipts(object):
+    def __init__(self):
+        self.supplier = None
+        self.shop_floor_control = None
 
-class ProductionPlayer(CompanyPlayer):
-    pass
+class Supplier(object):
+    def __init__(self):
+        self.goods_receipts = None
 
-class ProductionPlanner(CompanyPlayer):
-    pass
+class ShopFloorControl(object):
+    def __init__(self):
+        self.storage = None
+        self.production = None
+        self.orders_db = None
 
-class QualityAssurancePlayer(CompanyPlayer):
-    pass
+class Production(object):
+    def __init__(self):
+        self.quality_assurance = None
 
-class SalesPlayer(CompanyPlayer):
-    pass
+class QualityAssurance(object):
+    def __init__(self):
+        self.storage = None
+        self.production_planning = None
+        self.delivery = None
 
-class ShopFloorControl(CompanyPlayer):
-    pass
+class Storage(object):
+    '''
+    A class for storing things for the production company, such as parts or assembled units in the case of MTS
+    '''
+    def __init__(self):
+        pass
 
-class EmploymentAgencyPlayer(ExternalPlayer):
-    pass
+# ===== Customer Interaction Elements
 
-class Supplier(ExternalPlayer):
-    pass
+class Delivery(object):
+    def __init__(self):
+        self.customer = None
 
-class YSWYGPlayer(ExternalPlayer):
-    pass
+class Customer(object):
+    def __init__(self):
+        self.sales = None
 
-class Customer(ExternalPlayer):  # TODO: is this external?
-    pass
+class Sales(object):
+    def __init__(self):
+        self.production_planning = None
+        self.orders_db = None
+
+# ====== Ancillary classes
+
+class OrdersDB(dict):
+    '''
+    A database to hold orders. This is basically just a dict, but I'm making it a class in case I need to add functionality later.
+    '''
+    def __init__(self, *args, **kwargs):
+        super(OrdersDB, self).__init__(*args, **kwargs)
