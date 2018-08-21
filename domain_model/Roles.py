@@ -1,59 +1,168 @@
-# ===== Internal production elements
+import theatre_ag as theatre
 
-class ProductionPlanning(object):
+from Queue import PriorityQueue
+from functools import partial
+
+from utils import *
+
+
+# ===== Superclasses
+class SimulationAgent(theatre.Actor):
+    def __init__(self, *args, **kwargs):
+        super(SimulationAgent, self).__init__(*args, **kwargs)
+        self.inbox = PriorityQueue()  # This effectively works as our work queue.
+
+    def act_on(self, message):
+        '''
+        To be implemented by an actor in the simulation.
+        :param message: Any object which represents work passed to this actor by another.
+        :return: A function representing a workflow which processes the work indicated by the message passed.
+        '''
+        return partial(self.work_on, message)
+
+    def get_next_task(self):
+        '''
+        Overriding theatre.Actor.get_next_task. This gets the next task for our actor.
+        :return: A function representing a workflow step.
+        '''
+
+        # Idle if there's nothing to do
+        if self.inbox.empty():
+            return self.idling.idle
+
+        return self.act_on(self.inbox.get())
+
+    def work_on(self, order):
+        '''
+        To be implemented by a subclass. Generate the work that a given part of the process does for an order.
+        :param order: An OrderForm representing work to be done.
+        :return: Nothing, this is a workflow step.
+        '''
+        raise NotImplemented()
+
+
+class StoringAgent(object):
     def __init__(self):
+        self.storage = None
+
+    @theatre.default_cost(1)
+    def store_work(self, message):
+        '''
+        Sends work to storage.
+        :param message: An OrderForm representing work to be put into storage.
+        :return: Nothing, this is a workflow step.
+        '''
+        self.storage.store(message)
+
+
+# ===== Internal production elements
+class ProductionPlanning(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(ProductionPlanning, self).__init__(*args, **kwargs)
         self.goods_receipts = None
 
-    def 
 
-class GoodsReceipts(object):
-    def __init__(self):
+class GoodsReceipts(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(GoodsReceipts, self).__init__(*args, **kwargs)
         self.supplier = None
         self.shop_floor_control = None
 
-class Supplier(object):
-    def __init__(self):
+
+class Supplier(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(Supplier, self).__init__(*args, **kwargs)
         self.goods_receipts = None
 
-class ShopFloorControl(object):
-    def __init__(self):
-        self.storage = None
+
+class ShopFloorControl(SimulationAgent, StoringAgent):
+    def __init__(self, *args, **kwargs):
+        super(ShopFloorControl, self).__init__(*args, **kwargs)
         self.production = None
         self.orders_db = None
 
-class Production(object):
-    def __init__(self):
+    def act_on(self, message):
+        '''
+        Chooses what to do next.
+        :param message: An OrderForm
+        :return:
+        '''
+        # If our message is an ATO and is order_anticipated, SFC must *pause here*, putting work into Storage.
+        # Remember: messages take the form ((order_type, order_number), order_object).
+        # We *ALWAYS* process placed orders, even under different OPPs.
+        if is_anticipated(message) and message.OPP == "ATO":
+            return partial(self.store_work, message)
+
+        return super(ShopFloorControl, self).act_on(message)
+
+
+class Production(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(Production, self).__init__(*args, **kwargs)
         self.quality_assurance = None
 
-class QualityAssurance(object):
-    def __init__(self):
+
+class QualityAssurance(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(QualityAssurance, self).__init__(*args, **kwargs)
         self.storage = None
         self.production_planning = None
         self.delivery = None
 
-class Storage(object):
+
+class Storage(SimulationAgent):
     '''
     A class for storing things for the production company, such as parts or assembled units in the case of MTS
     '''
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        super(Storage, self).__init__(*args, **kwargs)
+        self.work_stored = {}
+
+    @theatre.default_cost(1)
+    def store(self, work, agent):
+        if agent not in self.work_stored.keys():
+            self.work_stored[agent] = []
+
+        self.work_stored[agent].append(work)
+
+    @theatre.default_cost(1)
+    def retrieve_matching_work(self, order_placed, agent):
+        '''
+        Get work which matches a placed order from stored orders.
+        Raises a NoWorkAvailable exception if the work can't be found in storage.
+        :param order_placed:
+        :param agent:
+        :return:
+        '''
+
+        if order_placed not in self.work_stored[agent]:
+            raise NoWorkAvailable
+
+        self.work_stored[agent].remove(order_placed)
+
 
 # ===== Customer Interaction Elements
 
-class Delivery(object):
-    def __init__(self):
+class Delivery(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(Delivery, self).__init__(*args, **kwargs)
         self.customer = None
 
-class Customer(object):
-    def __init__(self):
+
+class Customer(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(Customer, self).__init__(*args, **kwargs)
         self.sales = None
 
-class Sales(object):
-    def __init__(self):
+
+class Sales(SimulationAgent):
+    def __init__(self, *args, **kwargs):
+        super(Sales, self).__init__(*args, **kwargs)
         self.production_planning = None
         self.orders_db = None
 
 # ====== Ancillary classes
+
 
 class OrdersDB(dict):
     '''
