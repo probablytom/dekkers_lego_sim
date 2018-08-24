@@ -1,3 +1,13 @@
+## Fri 24th August
+
+Realised something reading through the code: there must be some impact other than storage costs of moving the OPP. For one thing, what's the reason **for** moving the OPP forward? We want to be able to model the impact of moving the OPP pretty accurately, so getting all of the pros *and* cons of moving it backwards *and* forwards would be really helpful to encode here. 
+
+Maybe I should be emailling Rob about this. 
+
+The experiment should, ideally, model them under ideal conditions: so, in one instance, the company prioritises speed over anything else, so we move the OPP appropriately and then discover, at the end, that all of the OPPs areeffective at achieving thier goals. Then we introduce this new factor: variance! Suddenly they don't work so well, so clearly variance was a missing variable, and we can add to the literature on OPP.
+
+---
+
 ## Fri 17th August
 
 Back from Nigeria!
@@ -27,7 +37,7 @@ Back from Nigeria!
     
 * Put together a `SimulationAgent` class that does most of the heavy lifting for the above, and helps to interact properly with Theatre.
     
-    
+---
 
 ## Mon 23rd July
 
