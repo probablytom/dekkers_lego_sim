@@ -1,10 +1,8 @@
 import theatre_ag as theatre
-
 from Queue import PriorityQueue
 from functools import partial
 
 from utils import *
-
 
 # ===== Superclasses
 class SimulationAgent(theatre.Actor):
@@ -92,8 +90,8 @@ class ShopFloorControl(SimulationAgent, StoringAgent):
     def act_on(self, message):
         '''
         Chooses what to do next.
-        :param message: An OrderForm
-        :return:
+        :param message: An OrderForm, pulled from the workqueue of this particular agent
+        :return: A function representing the work to be done in processing that OrderForm.
         '''
         # If our message is an ATO and is order_anticipated, SFC must *pause here*, putting work into Storage.
         # Remember: messages take the form ((order_type, order_number), order_object).
@@ -182,6 +180,7 @@ class Sales(SimulationAgent):
 # ====== Ancillary classes
 
 
+# TODO: is this necessary?
 class OrdersDB(dict):
     '''
     A database to hold orders. This is basically just a dict, but I'm making it a class in case I need to add functionality later.
