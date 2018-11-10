@@ -54,6 +54,14 @@ class StoringAgent(object):
         '''
         self.storage.store(message)
 
+    @theatre.default_cost(1)
+    def retrieve_possible_work(self, message):
+        try:
+            return self.storage.retrieve_matching_work(message, self)
+        except NoWorkAvailable:
+            return None
+
+
 
 # ===== Internal production elements
 class ProductionPlanning(SimulationAgent):
@@ -92,6 +100,7 @@ class ShopFloorControl(SimulationAgent, StoringAgent):
         # We *ALWAYS* process placed orders, even under different OPPs.
         if is_anticipated(message) and message.OPP == "ATO":
             return partial(self.store_work, message)
+        else:
 
         return super(ShopFloorControl, self).act_on(message)
 
@@ -125,20 +134,29 @@ class Storage(SimulationAgent):
 
         self.work_stored[agent].append(work)
 
+    def charge_for_storage(self):
+        '''
+        TODO: A method which calculates invoices for organisations.
+        :return:
+        '''
+        pass
+
     @theatre.default_cost(1)
     def retrieve_matching_work(self, order_placed, agent):
         '''
         Get work which matches a placed order from stored orders.
         Raises a NoWorkAvailable exception if the work can't be found in storage.
-        :param order_placed:
-        :param agent:
-        :return:
+        TODO: Should this raise `NoWorkAvailable` or return `None`?
+        :param order_placed: An Order object
+        :param agent: The agent who is looking for stored work (usually `self` for the caller)
+        :return: the other if found, or raises NoWorkAvailable otherwise.
         '''
 
         if order_placed not in self.work_stored[agent]:
             raise NoWorkAvailable
 
         self.work_stored[agent].remove(order_placed)
+        return order_placed
 
 
 # ===== Customer Interaction Elements
