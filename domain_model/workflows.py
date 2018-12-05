@@ -1,4 +1,5 @@
 from workflow_graphs import *
+from actions import *
 
 # Set up the graphs
 sales_dept_workflow = WorkflowGraph()
@@ -52,7 +53,7 @@ production_planning_workflow\
     .then(identify_correct_Bill_of_Materials_F)\
     .then(fill_out_picklist_M)\
     .then(pass_M_to_Supplier)\
-    .then(pass_order_foorm_to_shop_floor_control)\
+    .then(pass_order_form_to_shop_floor_control)\
     .then(End)
 
 
@@ -79,8 +80,9 @@ supplier\
 # The goods receipt workflow receives a box with materials and forms from the production planning department.
 # relevant context keys are: TODO
 
+# Begin doing nothing for now. Currently we can't *begin* with a decision - it's a technical limitation I'm working on.
 goods_receipt\
-    .begin_with(do_nothing)\  # For now. Currently we can't *begin* with a decision - it's a technical limitation I'm working on.
+    .begin_with(do_nothing) \
     .decide_on(correct_materials_received)\
     .when(False)\
     .then(return_box_and_picklist_to_supplier)\
@@ -143,7 +145,7 @@ qa_receiving_produced_car\
     .then(send_car_and_picklist_and_orderform_to_manager)\
     .when(False)\
     .then(fill_out_qa_form)\
-    .then(send_forms_and_car_to_manager)
+    .then(send_forms_and_car_to_manager)\
     .join()\
     .then(End)
 
@@ -157,7 +159,7 @@ qa_receiving_produced_car\
 # relevant context keys are: TODO
 
 financial_admin_dept\
-    .begin_with(fill_out_kit_price)
+    .begin_with(fill_out_kit_price)\
     .then(wait_for_ayn_employee_history_from_manager)\
     .then(complete_profit_and_loss)\
     .then(End)
