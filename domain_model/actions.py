@@ -1,31 +1,58 @@
-# Sales Department actions
-def fill_product_code_box(ctx, actor, env):
-    raise NotImplemented()
+from forms import B, E
+from workflow_graphs import default_cost
+from copy import copy
 
-def set_scheduled_lead_time(ctx, actor, env):
-    raise NotImplemented()
+
+# There's gotta be an easier way.
+def send_message(other_actor, message):
+    @default_cost(1)
+    def _send_message(ctx, actor, env):
+        other_actor.recieve_message(message)
+    return _send_message
+
+# Sales Department actions
+# NOTE: invoked when Sales is passed a Form A (customer order).
+def fill_product_code_box(ctx, actor, env):
+    ctx["forms"]["B"] = B()
+    ctx["forms"]["B"].product_code = ctx["incoming message"].product_code
+
+    # Begin populating the E form with its time recieved
+    # (but nothing else until we actually fill the form in, this is its own action)
+    ctx["forms"]["E entry"] = E.Entry()
+    ctx["forms"]["E entry"].time_recieved = actor["self"].clock.ticks_passed
+
+def set_scheduled_lead_time(ctx, actor, env):  #What's the scheduled lead time?
+    # TODO HAVE TO MAKE A DECISION HERE ABOUT HOW LONG WE WANT TO TAKE TO DELIVER THE CAR.
+    ctx["forms"]["B"].scheduled_lead_time = env["forms"]["D"]
 
 def fill_out_sales_history_E(ctx, actor, env):
-    raise NotImplemented()
+    ctx["forms"]["E entry"].order_number = copy(env["order_counter"])
+    env["order_counter"] += 1
+
+    ctx["forms"]["E entry"].product_code = ctx["forms"]["B"].product_code
+    ctx["forms"]["E entry"].scheduled_lead_time = ctx["forms"]["B"].scheduled_lead_time
+
+    actor["E"].add_entry(ctx["forms"]["E entry"])
 
 def pass_form_B_to_prod_planning(ctx, actor, env):
-    raise NotImplemented()
+    send_message(env["departments"]["production planning"], ctx["forms"]["B"])
 
 def pass_customer_order_to_QA(ctx, actor, env):
-    raise NotImplemented()
+    # The incoming message for this workflow is the relevant Form A.
+    send_message(env["departments"]["qa"], ctx["incoming message"])
 
 # Production planning actions
 def find_product_code_from_order_form_B(ctx, actor, env):
-    raise NotImplemented()
+    ctx["forms"]["B"] = copy(ctx["incoming message"])  # Product code is on form
 
 def identify_correct_Bill_of_Materials_F(ctx, actor, env):
-    raise NotImplemented()
+    ctx["forms"]["F"] = F(ctx["forms"]["B"].product_code)
 
 def fill_out_picklist_M(ctx, actor, env):
     raise NotImplemented()
 
 def pass_M_to_Supplier(ctx, actor, env):
-    raise NotImplemented()
+    send_message(env["departments"]["supplier"], ctx["forms"]["M"])
 
 def pass_order_form_to_shop_floor_control(ctx, actor, env):
     raise NotImplemented()
